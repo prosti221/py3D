@@ -1,7 +1,6 @@
 import colorsys
 import random
 import multiprocessing
-from module import Module
 import time
 import numpy as np
 import pygame as pg
@@ -111,12 +110,7 @@ class Light:
     def __init__(self, x=0, y=0, z=0):
         self.direction = np.array([x, y, z], dtype=np.float64)/np.linalg.norm(np.array([x, y, z], dtype=np.float64))
 
-class Render(Module):
-    def __init__(self):
-        Module.__init__(self, "Render")
-
-    def handleRequest(self, pipeline):
-        pass
+class Render():
 
     def init(self):
         pg.init()
@@ -137,6 +131,7 @@ class Render(Module):
                         [0, 1, 0, d_y], 
                         [-np.sin(np.deg2rad(theta_y)), 0, np.cos(np.deg2rad(theta_y)), 0],
                         [0, 0, 0, 1]], dtype=np.float64)
+
         #Homogeneous transformation along the z-axis
         Rz = np.array(  [[np.cos(np.deg2rad(theta_z)), -np.sin(np.deg2rad(theta_z)), 0, 0], 
                         [np.sin(np.deg2rad(theta_z)), np.cos(np.deg2rad(theta_z)), 0, 0], 
@@ -182,7 +177,7 @@ class Render(Module):
     def rotate_cube(self, cube, theta):
         sTime = time.time()
         #Do the rotations and translations
-        mesh_transformed = self.transform(cube, theta_x=theta, theta_y=0, theta_z=0, )
+        mesh_transformed = self.transform(cube, theta_x=theta*0.5, theta_y=0, theta_z=0, d_x=3, d_y=2, d_z=6)
         #Scale the mesh
         self.scale(mesh_transformed, WIDTH, HEIGHT)
         self.draw(mesh_transformed, screen, pg, wire_frame=True)
@@ -196,7 +191,7 @@ if __name__ == '__main__': # Testing the rendering
     #creating a Mesh object for testing
     test_object = Object("objects/rifle.obj")
     test_object.load_mesh()
-    test_object.mesh = renderer.transform(test_object.mesh, d_x = 6, d_y = 5, d_z = 10)
+    test_object.mesh = renderer.transform(test_object.mesh, d_x = 0, d_y = 0, d_z = 0)
     #setting a temporary camera and lighting direction
     camera = Camera(0, 0, 0)
     light = Light(0, 0, -1)
