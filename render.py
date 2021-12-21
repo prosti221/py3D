@@ -160,7 +160,7 @@ class Render():
     def draw(self, mesh, screen, pg, wire_frame=False):
         for poly in mesh.m:
             #Project from 3D space to 2D space
-            if poly.isVisible(camera.pos):
+            if poly.isVisible(camera.pos): #Supposed to check if poly.isVisible(camera.pos) but has a big performance hit
                 #shader = poly.shader(BLACK, light.direction)
                 for vertex in poly.vertecies:
                     vertex.coord = np.dot(vertex.coord, matProj)
@@ -175,14 +175,11 @@ class Render():
                     pg.draw.polygon(surface=screen, color=BLACK, points=[(poly.vertecies[0].coord[0], poly.vertecies[0].coord[1]), (poly.vertecies[1].coord[0], poly.vertecies[1].coord[1]), (poly.vertecies[2].coord[0], poly.vertecies[2].coord[1])])
 
     def rotate_cube(self, cube, theta):
-        sTime = time.time()
         #Do the rotations and translations
         mesh_transformed = self.transform(cube, theta_x=theta*0.5, theta_y=0, theta_z=0, d_x=3, d_y=2, d_z=6)
         #Scale the mesh
         self.scale(mesh_transformed, WIDTH, HEIGHT)
         self.draw(mesh_transformed, screen, pg, wire_frame=True)
-        eTime = time.time()
-        print("FPS: %d" %(1/(eTime - sTime)))
 
 if __name__ == '__main__': # Testing the rendering
     renderer = Render()
@@ -199,6 +196,7 @@ if __name__ == '__main__': # Testing the rendering
     c = 0.1
     run = True
     while(run):
+        sTime = time.time()
         screen.fill(WHITE)
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -206,3 +204,5 @@ if __name__ == '__main__': # Testing the rendering
         renderer.rotate_cube(test_object.mesh, c)
         pg.display.flip()
         c += 3 
+        eTime = time.time()
+        print("FPS: %d" %(1/(eTime - sTime)))
