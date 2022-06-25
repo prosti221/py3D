@@ -1,12 +1,16 @@
-import colorsys
-import random
-import multiprocessing
-import time
 import numpy as np
 import pygame as pg
 
+from vertex import *
+from polygon import *
+from mesh import *
+from object import *
+from camera import *
+from light import *
+
+
 #window size
-WIDTH = 900 
+WIDTH = 900
 HEIGHT = 800
 
 #Colors
@@ -29,95 +33,20 @@ left = bottom
 
 #Projection matrix
 matProj = np.array([[aspect * e, 0, 0, 0],
-                    [0, e, 0 ,0], 
+                    [0, e, 0 ,0],
                     [0, 0, far/(far - near), 1.0],
                     [0, 0, (-far * near)/(far -near), 0]], dtype=np.float64)
-
-class Vertex:
-    def __init__(self, x, y, z):
-        #Contains an extra dimension for the matrix multiplication
-        self.coord = np.array([ x, y, z, 1], dtype=np.float64) 
-
-class Polygon:
-    def __init__(self, vertecies):
-        #Contains three Vertex objects describing a triangle
-        self.vertecies = vertecies 
-
-    #Find the normal of the polygon plane
-    def getNormal(self):
-        A = self.vertecies[1].coord[:3] - self.vertecies[0].coord[:3]
-        B = self.vertecies[2].coord[:3] - self.vertecies[1].coord[:3]
-        normal = np.cross(A, B)
-        return normal/np.linalg.norm(normal) #returns only [x, y, z]
-    
-    #Check if the polygon should be visible to the camera
-    def isVisible(self, camera_pos):
-        normal = self.getNormal()
-        similarity = np.dot(normal, self.vertecies[0].coord[:3] - camera_pos)
-        if similarity < 0:
-            return True
-        return False
-
-    def shader(self, color, light):
-        normal = self.getNormal()
-        dp = np.dot(normal, self.vertecies[0].coord[:3]/np.linalg.norm(self.vertecies[0].coord[:3]) - light)
-        HSV = colorsys.rgb_to_hsv(*color)
-        HSV = (HSV[0], HSV[1], HSV[2] - dp*10)
-        color_sh = colorsys.hsv_to_rgb(*HSV)
-        return color_sh
-
-    def toString(self):
-        print('Polygon: \n')
-        for v in self.vertecies:
-            print(v.coord)
-
-#Meshes will store a collection of polygons
-class Mesh:
-    def __init__(self, m):
-        self.m = m
-
-#This represents scene objects
-class Object:
-    def __init__(self, file):
-        self.file = file
-        self.mesh = None 
-    
-    def load_mesh(self):
-        vertecies = []
-        polygons = []
-        with open(self.file) as file:
-            for line in file:
-                elements = line.split(' ')
-                if "v" in elements:
-                    elements = [float(e) for e in elements if e != "v"]
-                    vertecies.append(Vertex(*elements))
-                elif "f" in elements:
-                    elements = [int(e.split('/')[0]) for e in elements if e != "f" and e != '\n']
-                    index = (elements[0], elements[1], elements[2])
-                    params = [vertecies[index[0] - 1], vertecies[index[1] - 1], vertecies[index[2] - 1]]
-                    polygons.append(Polygon(params))
-        self.mesh = Mesh(polygons)
-
-    def print(self):
-        for polygon in self.mesh.m:
-            polygon.toString() 
-
-class Camera:
-    def __init__(self, x=0, y=0, z=0):
-        self.pos = np.array([x, y, z], dtype=np.float64)
-
-class Light:
-    def __init__(self, x=0, y=0, z=0):
-        self.direction = np.array([x, y, z], dtype=np.float64)/np.linalg.norm(np.array([x, y, z], dtype=np.float64))
 
 class Render():
 
     def init(self):
         pg.init()
-        screen = pg.display.set_mode((WIDTH, HEIGHT))
-        screen.fill(WHITE)
+        self.screen = pg.display.set_mode((WIDTH, HEIGHT))
+        self.screen.fill(WHITE)
         pg.display.flip()    
-        return (screen, pg)
+        self.camera = Camera(0, 0, 0)
+        self.light = Light(0, 0, -1)
+        return (self.screen, pg)
 
     def transform(self, mesh, theta_x=0, theta_y=0, theta_z=0, d_x=0, d_y=0, d_z=0):
         #Homogeneous transformation along the x-axis
@@ -160,8 +89,8 @@ class Render():
     def draw(self, mesh, screen, pg, wire_frame=False):
         for poly in mesh.m:
             #Project from 3D space to 2D space
-            if poly.isVisible(camera.pos): #Supposed to check if poly.isVisible(camera.pos) but has a big performance hit
-                #shader = poly.shader(BLACK, light.direction)
+            if poly.isVisible(self.camera.pos): #Supposed to check if poly.isVisible(camera.pos) but has a big performance hit
+                #shader = poly.shader(BLACK, self.light.direction)
                 for vertex in poly.vertecies:
                     vertex.coord = np.dot(vertex.coord, matProj)
                     w = vertex.coord[-1]
@@ -179,30 +108,5 @@ class Render():
         mesh_transformed = self.transform(cube, theta_x=theta*0.5, theta_y=0, theta_z=0, d_x=3, d_y=2, d_z=6)
         #Scale the mesh
         self.scale(mesh_transformed, WIDTH, HEIGHT)
-        self.draw(mesh_transformed, screen, pg, wire_frame=True)
+        self.draw(mesh_transformed, self.screen, pg, wire_frame=True)
 
-if __name__ == '__main__': # Testing the rendering
-    renderer = Render()
-    #initializing the screen
-    screen, pg = renderer.init()
-    #creating a Mesh object for testing
-    test_object = Object("objects/rifle.obj")
-    test_object.load_mesh()
-    test_object.mesh = renderer.transform(test_object.mesh, d_x = 0, d_y = 0, d_z = 0)
-    #setting a temporary camera and lighting direction
-    camera = Camera(0, 0, 0)
-    light = Light(0, 0, -1)
-    
-    c = 0.1
-    run = True
-    while(run):
-        sTime = time.time()
-        screen.fill(WHITE)
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                run = False
-        renderer.rotate_cube(test_object.mesh, c)
-        pg.display.flip()
-        c += 3 
-        eTime = time.time()
-        print("FPS: %d" %(1/(eTime - sTime)))
