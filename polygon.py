@@ -3,7 +3,6 @@ import colorsys
 
 class Polygon:
     def __init__(self, vertecies):
-        #Contains three Vertex objects describing a triangle
         self.vertecies = vertecies 
 
     #Find the normal of the polygon plane
@@ -11,7 +10,7 @@ class Polygon:
         A = self.vertecies[1].coord[:3] - self.vertecies[0].coord[:3]
         B = self.vertecies[2].coord[:3] - self.vertecies[1].coord[:3]
         normal = np.cross(A, B)
-        return normal/np.linalg.norm(normal) #returns only [x, y, z]
+        return normal/np.linalg.norm(normal)
     
     #Check if the polygon should be visible to the camera
     def isVisible(self, camera_pos):
@@ -21,6 +20,7 @@ class Polygon:
             return True
         return False
 
+    # Temporary shader function
     def shader(self, color, light):
         normal = self.getNormal()
         dp = np.dot(normal, self.vertecies[0].coord[:3]/np.linalg.norm(self.vertecies[0].coord[:3]) - light)

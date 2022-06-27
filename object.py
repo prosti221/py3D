@@ -1,31 +1,53 @@
 import numpy as np
-from vertex import *
-from polygon import *
-from mesh import *
+from globals import *
+from utils import parse_obj
+from vertex import Vertex 
+from mesh import Mesh
 
-#This represents scene objects
 class Object:
-    def __init__(self, file):
+    def __init__(self, file=None):
         self.file = file
-        self.mesh = None 
-    
+        self.mesh = None
+        self.position = (0, 0, 0) # center point of the object
+
     def load_mesh(self):
-        vertecies = []
-        polygons = []
-        with open(self.file) as file:
-            for line in file:
-                elements = line.split(' ')
-                if "v" in elements:
-                    elements = [float(e) for e in elements if e != "v"]
-                    vertecies.append(Vertex(*elements))
-                elif "f" in elements:
-                    elements = [int(e.split('/')[0]) for e in elements if e != "f" and e != '\n']
-                    index = (elements[0], elements[1], elements[2])
-                    params = [vertecies[index[0] - 1], vertecies[index[1] - 1], vertecies[index[2] - 1]]
-                    polygons.append(Polygon(params))
+        polygons = parse_obj(self.file)
         self.mesh = Mesh(polygons)
+        self.position = self.get_center_point()
 
     def print(self):
-        for polygon in self.mesh.m:
+        for polygon in self.mesh.polygons:
             polygon.toString() 
+    
+    def get_center_point(self):
+        x = 0
+        y = 0
+        z = 0
+        for poly in self.mesh.polygons:
+            for vert in poly.vertecies:
+                x += vert.coord[0]
+                y += vert.coord[1]
+                z += vert.coord[2]
+        x /= len(self.mesh.polygons) * 3
+        y /= len(self.mesh.polygons) * 3
+        z /= len(self.mesh.polygons) * 3
+        return (x, y, z)
 
+    def apply_transform(self, transform):
+        x, y, z = (0, 0, 0)
+        #Transform all the vertecies
+        for i, poly in enumerate(self.mesh.polygons):
+            for j, vertex in enumerate(poly.vertecies):
+                x += vertex.coord[0]; y += vertex.coord[1]; z += vertex.coord[2]
+                new_vert = np.dot(transform, vertex.coord)
+                # Creating a new vertex object, modyfing in place leads to weird behavior
+                self.mesh.polygons[i].vertecies[j] = Vertex(new_vert[0], new_vert[1], new_vert[2])
+
+        self.position = (x/(len(self.mesh.polygons) * 3), y/(len(self.mesh.polygons) * 3), z/(len(self.mesh.polygons) * 3))
+
+    def apply_scale(self,x, y):
+        for poly in self.mesh.polygons:
+            for vert in poly.vertecies:
+                vert.coord[1] *= x
+                vert.coord[0] *= y
+    
