@@ -28,6 +28,9 @@ class Render():
     
     def update(self):
         self.display.flip()
+    
+    def destroy(self):
+        pg.quit()
 
     def draw(self, object, wire_frame=False):
         cur_polygon = np.zeros((3, 3))

@@ -20,9 +20,7 @@ class Object:
             polygon.toString() 
     
     def get_center_point(self):
-        x = 0
-        y = 0
-        z = 0
+        x, y, z = 0, 0, 0
         for poly in self.mesh.polygons:
             for vert in poly.vertecies:
                 x += vert.coord[0]
@@ -34,7 +32,7 @@ class Object:
         return (x, y, z)
 
     def apply_transform(self, transform):
-        x, y, z = (0, 0, 0)
+        x, y, z = 0, 0, 0
         #Transform all the vertecies
         for i, poly in enumerate(self.mesh.polygons):
             for j, vertex in enumerate(poly.vertecies):
@@ -45,9 +43,9 @@ class Object:
 
         self.position = (x/(len(self.mesh.polygons) * 3), y/(len(self.mesh.polygons) * 3), z/(len(self.mesh.polygons) * 3))
 
-    def apply_scale(self,x, y):
+    def apply_scale(self, scale_factor):
         for poly in self.mesh.polygons:
             for vert in poly.vertecies:
-                vert.coord[1] *= x
-                vert.coord[0] *= y
+                new_vert = np.array(vert.coord[:3]) * scale_factor
+                vert.coord = np.append(new_vert, 1)
     

@@ -5,11 +5,11 @@ from render import Render
 from transform import get_camera_axis_transformation, get_obj_axis_transformation
 from globals import *
 
-if __name__ == '__main__': # Testing the rendering
+# Testing the rendering
+if __name__ == '__main__':
     renderer = Render()
-    #initializing the screen
     display, pg = renderer.create()
-    #creating a Mesh object for testing
+
     test_object = Object("objects/rifle.obj")
     test_object.load_mesh()
     test_object.apply_transform(get_camera_axis_transformation(d_z=4, d_x=-1))
@@ -31,3 +31,5 @@ if __name__ == '__main__': # Testing the rendering
         renderer.update()
         frame_count += 1
         print("FPS: %d" % (frame_count / (time.time() - sTime)))
+
+    renderer.destroy()
