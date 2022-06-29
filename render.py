@@ -24,7 +24,7 @@ class Render():
         return (self.display, pg)
 
     def clear(self):
-        self.display.get_surface().fill(WHITE)
+        self.display.get_surface().fill(BLACK)
     
     def update(self):
         self.display.flip()
@@ -46,10 +46,10 @@ class Render():
 
                 #Draw the polygon
                 if wire_frame:
-                    pg.draw.line(self.display.get_surface(), BLACK, (cur_polygon[0][0], cur_polygon[0][1]), (cur_polygon[1][0], cur_polygon[1][1]))
-                    pg.draw.line(self.display.get_surface(), BLACK, (cur_polygon[1][0], cur_polygon[1][1]), (cur_polygon[2][0], cur_polygon[2][1]))
-                    pg.draw.line(self.display.get_surface(), BLACK, (cur_polygon[2][0], cur_polygon[2][1]), (cur_polygon[0][0], cur_polygon[0][1]))
+                    pg.draw.line(self.display.get_surface(), CYAN, (cur_polygon[0][0], cur_polygon[0][1]), (cur_polygon[1][0], cur_polygon[1][1]))
+                    pg.draw.line(self.display.get_surface(), CYAN, (cur_polygon[1][0], cur_polygon[1][1]), (cur_polygon[2][0], cur_polygon[2][1]))
+                    pg.draw.line(self.display.get_surface(), CYAN, (cur_polygon[2][0], cur_polygon[2][1]), (cur_polygon[0][0], cur_polygon[0][1]))
                 else: 
-                    pg.draw.polygon(surface=self.display.get_surface(), color=BLACK, points=[(int(cur_polygon[0][0]), int(cur_polygon[0][1])), 
+                    pg.draw.polygon(surface=self.display.get_surface(), color=CYAN, points=[(int(cur_polygon[0][0]), int(cur_polygon[0][1])), 
                                                                           (int(cur_polygon[1][0]), int(cur_polygon[1][1])), 
                                                                           (int(cur_polygon[2][0]), int(cur_polygon[2][1]))])
